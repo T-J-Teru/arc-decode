@@ -1,1 +1,40 @@
-Example decoder project.
+This project is an example instruction decoder that works with a
+shared library libopcodes.
+
+First, clone and build the branch of binutils-gdb that contains the
+prototype instruction decoder:
+
+   TOPDIR=$(pwd)
+   mkdir binutils-gdb
+   cd binutils-gdb
+   git clone -origin tjteru --branch arc-insn-decoder git@github.com:T-J-Teru/binutils-gdb.git src
+   mkdir build
+   INSTALL_DIR=$(pwd)/install
+   cd build
+   ../src/configure --target=arceb-elf --prefix=${INSTALL_DIR} --enable-shared --enable-install-libbfd
+   make all-opcodes
+   make install-opcodes
+   cd ${TOPDIR}
+
+Now build this project.  If you just cloned from github you'll need to
+do this to setup the autotool build infrastructure:
+
+   autoreconf --force --install
+
+After that, you can proceed with the build:
+
+   mkdir build
+   cd build
+   ../configure CFLAGS="-I ${INSTALL_DIR}/x86_64-pc-linux-gnu/arceb-elf/include" \
+                LDFLAGS="-L ${INSTALL_DIR}/x86_64-pc-linux-gnu/arceb-elf/lib"
+   make
+
+And now the sample decoder can be run.  You'll need to ensure that the
+libopcodes library can be found:
+
+   LD_LIBRARY_PATH=${INSTALL_DIR}/x86_64-pc-linux-gnu/arceb-elf/lib:${LD_LIBRARY_PATH}
+   export LD_LIBRARY_PATH
+   ./src/decoder 22 0a 0f 80 00 12 34 56
+
+This should produce a decoding of the instruction whose bytes are '22
+0a 0f 80 00 12 34 56'.
